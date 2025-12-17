@@ -8,9 +8,6 @@ from sqlmodel import Session
 from app.core.config import settings
 from app.core.db import engine
 
-# JWT configuration
-ALGORITHM = "HS256"
-
 def get_db() -> Generator[Session, None, None]:
     with Session(engine) as session:
         yield session

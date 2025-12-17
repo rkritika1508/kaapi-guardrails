@@ -4,7 +4,7 @@ services:
 
   db:
     image: postgres:16
-    container_name: kaapi-guardrail-postgres-db
+    container_name: kaapi-guardrails-postgres-db
     restart: always
     env_file:
       - .env
@@ -26,7 +26,7 @@ services:
 
   adminer:
     image: adminer
-    container_name: kaapi-guardrail-adminer
+    container_name: kaapi-guardrails-adminer
     restart: always
     depends_on:
       - db
@@ -37,7 +37,7 @@ services:
 
   prestart:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
-    container_name: kaapi-guardrail-prestart
+    container_name: kaapi-guardrails-prestart
     build:
       context: ./backend
     depends_on:
@@ -53,7 +53,7 @@ services:
 
   backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
-    container_name: kaapi-guardrail-backend
+    container_name: kaapi-guardrails-backend
     restart: always
     build:
       context: ./backend
