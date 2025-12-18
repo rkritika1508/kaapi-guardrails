@@ -12,7 +12,7 @@ from typing import Callable, List, Optional
 
 import pandas
 import re
-from app.core.constants import GENDER_BIAS_LIST_FILENAME
+from app.core.config import Settings
 
 class BiasCategories(Enum):
     Generic = "generic"
@@ -61,8 +61,7 @@ class GenderAssumptionBias(Validator):
         return PassResult(value=self.text)
 
     def load_gender_bias_list(self, categories):
-        BASE_DIR = Path(__file__).resolve().parent.parent  # goes up from validators/ to src/
-        file_path = f"{BASE_DIR}/validators/gender_assumption_bias/{GENDER_BIAS_LIST_FILENAME}"
+        file_path = Settings.GENDER_BIAS_LIST_FILEPATH
         neutral_term_col = 'neutral-term'
         gender_bias_list = []
 

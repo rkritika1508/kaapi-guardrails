@@ -1,7 +1,8 @@
 import os
+from pathlib import Path
 import secrets
 import warnings
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 from pydantic import (
     EmailStr,
@@ -41,6 +42,24 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
+
+    CORE_DIR: ClassVar[Path] = Path(__file__).resolve().parent
+
+    SLUR_LIST_FILEPATH: ClassVar[Path] = (
+        CORE_DIR
+        / "validators"
+        / "utils"
+        / "files"
+        / "curated_slurlist_hi_en.csv"
+    )
+
+    GENDER_BIAS_LIST_FILEPATH: ClassVar[Path] = (
+        CORE_DIR
+        / "validators"
+        / "utils"
+        / "files"
+        / "gender_assumption_bias_words.csv"
+    )
 
     @computed_field  # type: ignore[prop-decorator]
     @property

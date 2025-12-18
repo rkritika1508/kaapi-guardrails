@@ -17,7 +17,7 @@ import re
 import string
 import unicodedata
 
-from app.core.constants import SLUR_LIST_FILENAME
+from app.core.config import Settings
 
 class SlurSeverity(Enum):
     Low = "low"
@@ -91,8 +91,7 @@ class LexicalSlur(Validator):
         return text
 
     def load_slur_list(self):
-        BASE_DIR = Path(__file__).resolve().parent.parent  # goes up from validators/ to src/
-        file_path = f"{BASE_DIR}/validators/lexical_slur/{SLUR_LIST_FILENAME}"
+        file_path = Settings.SLUR_LIST_FILEPATH
 
         df = pandas.read_csv(file_path)
         df['label'] = df['label'].str.lower()
