@@ -5,6 +5,12 @@ from app.models.guardrail_config import GuardrailInputRequest, GuardrailOutputRe
 from app.api.deps import AuthDep
 from app.core.api_response import APIResponse
 
+from app.core.validators.registry import (
+    ValidatorRegistry,
+    load_validator_data
+)
+
+
 router = APIRouter(prefix="/guardrails", tags=["guardrails"])
 
 @router.post("/input/")
@@ -105,3 +111,19 @@ async def run_output_guardrails(
 def build_guard(validator_items):
     validators = [v_item.build() for v_item in validator_items]
     return Guard().use_many(*validators)
+    # 🔴 THIS LINE IS ESSENTIAL
+    return Guard().use_many(*validators)
+
+
+@router.get("/validator/")
+async def get_validators(
+    _: AuthDep,
+):
+    validator_data = load_validator_data()
+    validators = validator_data.validators
+
+    output = []
+    for validator in validators:
+        validator_config = ValidatorRegistry.get(validator.type)
+        output.append({"type": validator.type , "config": validator_config.model_json_schema()})
+    return {"validators": output}
