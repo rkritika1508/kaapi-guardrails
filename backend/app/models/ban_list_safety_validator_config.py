@@ -1,3 +1,4 @@
+from guardrails.hub import BanList
 from guardrails.utils.validator_utils import get_validator
 from typing import ClassVar, List, Literal
 
@@ -9,7 +10,7 @@ class BanListSafetyValidatorConfig(BaseValidatorConfig):
     banned_words: List[str]
 
     def build(self):
-        return get_validator({
-            "type": self.type,
-            "banned_words": self.banned_words,
-        })
+        return BanList(
+            banned_words=self.banned_words,
+            on_fail=self.resolve_on_fail(),
+        )

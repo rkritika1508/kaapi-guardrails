@@ -11,5 +11,6 @@ class LexicalSlurSafetyValidatorConfig(BaseValidatorConfig):
     def build(self):
         return LexicalSlur(
             languages=self.languages,
-            severity=SlurSeverity(self.severity)
+            severity=SlurSeverity(self.severity),
+            on_fail=self.resolve_on_fail(),
         )

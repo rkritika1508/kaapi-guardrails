@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import ClassVar, List, Literal, Optional
+from typing import List, Literal, Optional
 
 from app.core.validators.utils.language_detector import LanguageDetector
 from app.models.base_validator_config import BaseValidatorConfig
@@ -17,5 +17,6 @@ class PIIRemoverSafetyValidatorConfig(BaseValidatorConfig):
             entity_types=self.entity_types,
             threshold=self.threshold,
             language=self.language,
-            language_detector=self.language_detector
+            language_detector=self.language_detector,
+            on_fail=self.resolve_on_fail(),
         )
