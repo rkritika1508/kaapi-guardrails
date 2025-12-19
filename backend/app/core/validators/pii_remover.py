@@ -29,7 +29,6 @@ class PIIRemover(Validator):
         entity_types=None,
         threshold=0.5,
         language="en",
-        language_detector=None,
         on_fail: Optional[Callable] = OnFailAction.FIX
     ):
         super().__init__(on_fail=on_fail)
@@ -37,7 +36,7 @@ class PIIRemover(Validator):
         self.entity_types = entity_types or ["ALL"]
         self.threshold = threshold
         self.language = language
-        self.language_detector = language_detector or LanguageDetector()
+        self.language_detector = LanguageDetector()
 
         if self.language not in ALL_SUPPORTED_LANGUAGES:
             raise Exception(

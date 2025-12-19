@@ -1,15 +1,10 @@
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
-from guardrails import Guard
+
 from app.models.guardrail_config import GuardrailInputRequest, GuardrailOutputRequest
 from app.api.deps import AuthDep
 from app.core.api_response import APIResponse
-
-from app.core.validators.registry import (
-    ValidatorRegistry,
-    load_validator_data
-)
-
+from app.core.guardrail_controller import build_guard, get_validator_config_models
 
 router = APIRouter(prefix="/guardrails", tags=["guardrails"])
 
@@ -108,22 +103,20 @@ async def run_output_guardrails(
             ).model_dump(),
         )
 
-def build_guard(validator_items):
-    validators = [v_item.build() for v_item in validator_items]
-    return Guard().use_many(*validators)
-    # 🔴 THIS LINE IS ESSENTIAL
-    return Guard().use_many(*validators)
-
-
 @router.get("/validator/")
-async def get_validators(
-    _: AuthDep,
-):
-    validator_data = load_validator_data()
-    validators = validator_data.validators
+async def list_validators(_: AuthDep):
+    """
+    Lists all validators and their parameters directly.
+    """
+    validator_config_models = get_validator_config_models()
+    validators = []
 
-    output = []
-    for validator in validators:
-        validator_config = ValidatorRegistry.get(validator.type)
-        output.append({"type": validator.type , "config": validator_config.model_json_schema()})
-    return {"validators": output}
+    for model in validator_config_models:
+        schema = model.model_json_schema()
+        validator_type = schema["properties"]["type"]["const"]
+        validators.append({
+            "type": validator_type,
+            "config": schema,
+        })
+
+    return {"validators": validators}
