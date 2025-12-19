@@ -28,8 +28,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project
 
 ENV PYTHONPATH=/app
+RUN apt-get update && apt-get install -y jq && rm -rf /var/lib/apt/lists/*
 
 COPY ./scripts /app/scripts
+RUN chmod +x /app/scripts/*.sh
 
 COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
 
@@ -41,4 +43,7 @@ COPY ./tests /app/tests
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync
 
-CMD ["fastapi", "run", "--workers", "4", "app/main.py"]
+# -------------------------------
+# Entrypoint (runtime setup)
+# -------------------------------
+ENTRYPOINT ["/app/scripts/entrypoint.sh"]
