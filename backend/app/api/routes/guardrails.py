@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from app.models.guardrail_config import GuardrailInputRequest, GuardrailOutputRequest
-from app.api.deps import AuthDep
+from app.api.deps import AuthDep, SessionDep
 from app.core.api_response import APIResponse
 from app.core.guardrail_controller import build_guard, get_validator_config_models
 
@@ -12,8 +12,10 @@ router = APIRouter(prefix="/guardrails", tags=["guardrails"])
 @router.post("/input/")
 async def run_input_guardrails(
     payload: GuardrailInputRequest,
+    session: SessionDep,
     _: AuthDep,
 ):
+    print(session)
     return await _validate_with_guard(
         payload.input,
         payload.validators,
