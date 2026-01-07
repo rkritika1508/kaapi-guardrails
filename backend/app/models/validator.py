@@ -8,7 +8,7 @@ from datetime import datetime
 
 class ValidatorLog(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    request_id: UUID = Field(foreign_key="requestlog.id", nullable=False)
+    request_id: UUID = Field(foreign_key="request_log.id", nullable=False)
     input: str
     output: str
     error: str

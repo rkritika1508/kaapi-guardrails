@@ -7,6 +7,8 @@ from app.api.deps import AuthDep, SessionDep
 from app.core.api_response import APIResponse
 from app.core.guardrail_controller import build_guard, get_validator_config_models
 
+from app.crud.request_log import RequestLogCrud
+
 router = APIRouter(prefix="/guardrails", tags=["guardrails"])
 
 @router.post("/input/")
@@ -15,7 +17,8 @@ async def run_input_guardrails(
     session: SessionDep,
     _: AuthDep,
 ):
-    print(session)
+    request_log_crud = RequestLogCrud(session=session)
+    request_log_crud.create(request_id=uuid.uuid4())
     return await _validate_with_guard(
         payload.input,
         payload.validators,

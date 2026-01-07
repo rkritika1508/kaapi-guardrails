@@ -11,6 +11,7 @@ class RequestStatus(str, Enum):
     WARNING = "warning"
 
 class RequestLog(SQLModel, table=True):
+    __tablename__ = "request_log"
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     request_id: UUID 
     response_id: UUID
@@ -20,3 +21,8 @@ class RequestLog(SQLModel, table=True):
     inserted_at: datetime = Field(default_factory=now, nullable=False)
     updated_at: datetime = Field(default_factory=now, nullable=False)
 
+class RequestLogCreate(SQLModel):
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    request_id: UUID
+    inserted_at: datetime = Field(default_factory=now, nullable=False)
+    updated_at: datetime = Field(default_factory=now, nullable=False)
