@@ -1,7 +1,7 @@
 import pytest
 
 from unittest.mock import patch
-from app.core.guardrail_controller import build_guard
+from fastapi.responses import JSONResponse
 from app.api.routes.guardrails import _validate_with_guard
 
 class MockResult:
