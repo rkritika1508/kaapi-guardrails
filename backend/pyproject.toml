@@ -2,7 +2,7 @@
 name = "app"
 version = "0.1.0"
 description = ""
-requires-python = ">=3.10,<3.12"
+requires-python = ">=3.12,<4.0"
 dependencies = [
     "fastapi[standard]<1.0.0,>=0.114.2",
     "python-multipart<1.0.0,>=0.0.7",
@@ -22,7 +22,7 @@ dependencies = [
     "sentry-sdk[fastapi]<2.0.0,>=1.40.6",
     "pyjwt<3.0.0,>=2.8.0",
     "asgi-correlation-id>=4.3.4",
-    "guardrails-ai>=0.7.0",
+    "guardrails-ai>=0.7.2",
     "emoji",
     "ftfy",
     "presidio_analyzer",
@@ -32,7 +32,6 @@ dependencies = [
     "pandas>=2.3.2",
     "numpy>=1.24.0",
     "python-dotenv<2.0.0,>=1.0.0",
-    "pytest-asyncio",
 ]
 
 [tool.uv]
@@ -43,6 +42,7 @@ dev-dependencies = [
     "pre-commit<4.0.0,>=3.6.2",
     "types-passlib<2.0.0.0,>=1.7.7.20240106",
     "coverage<8.0.0,>=7.4.3",
+    "pytest-asyncio",
 ]
 
 [build-system]

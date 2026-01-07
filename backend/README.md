@@ -157,25 +157,21 @@ If you don't want to start with the default models and want to remove them / mod
 
 # Guardrails AI
 
-## Python Version Compatibility
+## Guardrails AI Setup
+1. Ensure that the .env.example file contains the correct value from `GUARDRAILS_HUB_API_KEY`. The key can be fetched from [here](https://hub.guardrailsai.com/keys).
 
-We intentionally **do not use Python 3.12 or newer**.  
-This project uses **Python 3.11.14**, which is the latest stable version fully compatible with Guardrails AI.
-
-Guardrails AI **partially supports Python 3.12**, and operations like configuration give errors. **Validators from the [Guardrails Hub](https://guardrailsai.com/hub) cannot be installed on Python 3.12**.
-
-### Example error observed on Python 3.12
+2. Make the `install_guardrails_from_hub.sh` script executable using this command (run this from the `backend` folder) -
 
 ```bash
-guardrails configure
+chmod +x scripts/install_guardrails_from_hub.sh
+```
+3. Run this command to configure Guardrails AI -
 
-Traceback (most recent call last):
-  from guardrails_grhub_ban_list import BanList
-ModuleNotFoundError: No module named 'guardrails_grhub_ban_list'
+```bash
+scripts/install_guardrails_from_hub.sh;        
 ```
 
-## Guardrails AI Setup
-
+### Alternate Method
 Run the following commands inside your virtual environment:
 
 ```bash
