@@ -26,11 +26,9 @@ class GenderAssumptionBias(Validator):
         on_fail: Optional[Callable] = OnFailAction.FIX
     ):
         self.gender_bias_list = self.load_gender_bias_list(categories)
-        self.text = None
         super().__init__(on_fail=on_fail)
 
     def _validate(self, value: str, metadata: dict = None) -> ValidationResult:
-        self.text = value
         detected_biased_words = []
         bias_check = False
 
@@ -40,19 +38,19 @@ class GenderAssumptionBias(Validator):
 
             pattern = rf"\b{re.escape(word)}\b"
 
-            if re.search(pattern, self.text, flags=re.IGNORECASE):
+            if re.search(pattern, value, flags=re.IGNORECASE):
                 detected_biased_words.append(word)
 
-                self.text = re.sub(pattern, neutral_term, self.text, flags=re.IGNORECASE)
+                value = re.sub(pattern, neutral_term, value, flags=re.IGNORECASE)
                 bias_check = True
 
         if bias_check:
             return FailResult(
                 error_message=f"Detected gender assumption bias: {detected_biased_words}",
-                fix_value=self.text
+                fix_value=value
             )
 
-        return PassResult(value=self.text)
+        return PassResult(value=value)
 
     def load_gender_bias_list(self, categories):
         file_path = Settings.GENDER_BIAS_LIST_FILEPATH

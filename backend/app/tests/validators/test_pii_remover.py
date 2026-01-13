@@ -2,82 +2,108 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.core.validators.pii_remover import PIIRemover
+from app.core.validators.pii_remover import ALL_ENTITY_TYPES, PIIRemover
+
 
 # -------------------------------
-# Basic fixture with mock Presidio
+# Fixtures
 # -------------------------------
+
 @pytest.fixture
 def mock_presidio():
-    """Mock AnalyzerEngine and AnonymizerEngine before validator loads."""
-    with patch("app.core.validators.pii_remover.AnalyzerEngine") as mock_analyzer, \
-         patch("app.core.validators.pii_remover.AnonymizerEngine") as mock_anonymizer:
+    """
+    Mock AnalyzerEngine and AnonymizerEngine before validator loads.
+    """
+    with patch(
+        "app.core.validators.pii_remover.AnalyzerEngine"
+    ) as mock_analyzer, patch(
+        "app.core.validators.pii_remover.AnonymizerEngine"
+    ) as mock_anonymizer:
 
-        mock_analyzer.return_value.analyze.return_value = []
-        mock_anonymizer.return_value.anonymize.return_value = MagicMock(
-            text="redacted text"
-        )
-        yield mock_analyzer, mock_anonymizer
+        analyzer_instance = mock_analyzer.return_value
+        anonymizer_instance = mock_anonymizer.return_value
+
+        analyzer_instance.analyze.return_value = []
+        anonymizer_instance.anonymize.return_value = MagicMock(text="original text")
+
+        yield analyzer_instance, anonymizer_instance
+
 
 @pytest.fixture
 def validator(mock_presidio):
+    return PIIRemover(entity_types=None, threshold=0.5)
+
+
+# -------------------------------
+# TESTS
+# -------------------------------
+
+def test_pass_when_no_pii_detected(validator):
     """
-    A validator with simple config.
+    If anonymized text is identical to input, should PASS.
     """
-    return PIIRemover(
-        entity_types=None,
-        threshold=0.5,
-        language="en"
+    result = validator._validate("original text")
+
+    assert result.outcome == "pass"
+
+
+def test_fail_when_pii_detected(validator):
+    """
+    If anonymized text differs, should FAIL with fix_value.
+    """
+    validator.anonymizer.anonymize.return_value = MagicMock(
+        text="redacted text"
     )
 
-# -------------------------
-# TESTS BEGIN
-# -------------------------
+    result = validator._validate("original text")
 
-def test_validate_pass_result_when_presidio_returns_string(validator):
-    # Mock analyzer/anonymizer pipeline
-    with patch.object(validator, "run_english_presidio", return_value="no pii here"):
-        result = validator._validate("no pii here")
-        assert result.outcome is "pass"
-
-def test_validate_pass_result_when_presidio_returns_engine_result(validator):
-    mock_engine = MagicMock()
-    mock_engine.text = "redacted text"
-
-    with patch.object(validator, "run_english_presidio", return_value=mock_engine):
-        result = validator._validate("hello world")
-        assert result.outcome is "fail"
-
-def test_fail_if_anonymized_is_none(validator):
-    with patch.object(validator, "run_english_presidio", return_value=None):
-        result = validator._validate("something")
-        assert result.outcome is "fail"
-
-def test_english_path_called_when_language_not_hindi(validator):
-    with patch.object(validator.language_detector, "predict", return_value="en"):
-        with patch.object(validator.language_detector, "is_hindi", return_value="hi"):
-            with patch.object(validator, "run_english_presidio") as mock_eng:
-                validator._validate("text")
-                mock_eng.assert_not_called()
+    assert result.outcome == "fail"
+    assert result.fix_value == "redacted text"
+    assert result.error_message == "PII detected in the text."
 
 
-def test_hinglish_path_called_for_hindi_text(validator):
-    with patch.object(validator.language_detector, "predict", return_value="hi"):
-        with patch.object(validator.language_detector, "is_hindi", return_value="hi"):
-            with patch.object(validator, "run_hinglish_presidio") as mock_hing:
-                validator._validate("text")
-                mock_hing.assert_called_once()
+def test_analyzer_called_with_correct_arguments(validator):
+    validator._validate("hello")
+
+    validator.analyzer.analyze.assert_called_once_with(
+        text="hello",
+        entities=validator.entity_types,
+        language="en",
+    )
+
 
 def test_default_entity_types_applied(validator):
-    # entity types should be filtered to builtins; analyzer mocked so entity_types remains list
-    assert isinstance(validator.entity_types, list)
-    assert len(validator.entity_types) > 0
+    assert validator.entity_types == ALL_ENTITY_TYPES
 
 
 def test_custom_entity_types_override(mock_presidio):
-    v = PIIRemover(
-        entity_types=["EMAIL_ADDRESS"],
-        threshold=0.5,
-        language="en",
-    )
+    v = PIIRemover(entity_types=["EMAIL_ADDRESS"], threshold=0.5)
+
     assert v.entity_types == ["EMAIL_ADDRESS"]
+
+
+def test_indian_recognizers_registered_when_requested():
+    """
+    Ensure Indian recognizers are conditionally registered.
+    """
+    with patch(
+        "app.core.validators.pii_remover.AnalyzerEngine"
+    ) as mock_analyzer, patch(
+        "app.core.validators.pii_remover.AnonymizerEngine"
+    ):
+
+        registry = mock_analyzer.return_value.registry
+
+        PIIRemover(
+            entity_types=[
+                "IN_AADHAAR",
+                "IN_PAN",
+                "IN_PASSPORT",
+                "IN_VEHICLE_REGISTRATION",
+                "IN_VOTER",
+            ],
+            threshold=0.5,
+        )
+
+        # Called once per recognizer
+        assert registry.add_recognizer.call_count == 5

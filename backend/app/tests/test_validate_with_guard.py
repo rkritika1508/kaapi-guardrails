@@ -1,17 +1,19 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
-from fastapi.responses import JSONResponse
 
 from app.api.routes.guardrails import _validate_with_guard
-from app.tests.guardrails_mocks import MockResult, MockFailure
+from app.tests.guardrails_mocks import MockFailure, MockResult
+from app.utils import APIResponse
+
 
 mock_request_log_crud = MagicMock()
 mock_request_log_id = uuid4()
 
+
 @pytest.mark.asyncio
-async def test_validate_with_guard_success(client):
+async def test_validate_with_guard_success():
     class MockGuard:
         def validate(self, data):
             return MockResult(validated_output="clean text")
@@ -28,9 +30,11 @@ async def test_validate_with_guard_success(client):
             request_log_id=mock_request_log_id,
         )
 
+    assert isinstance(response, APIResponse)
     assert response.success is True
     assert response.data["safe_input"] == "clean text"
     assert "response_id" in response.data
+
 
 @pytest.mark.asyncio
 async def test_validate_with_guard_validation_error_with_failures():
@@ -38,7 +42,7 @@ async def test_validate_with_guard_validation_error_with_failures():
         def validate(self, data):
             return MockResult(
                 validated_output=None,
-                failures=[MockFailure("PII detected")]
+                failures=[MockFailure("PII detected")],
             )
 
     with patch(
@@ -53,13 +57,11 @@ async def test_validate_with_guard_validation_error_with_failures():
             request_log_id=mock_request_log_id,
         )
 
-    assert isinstance(response, JSONResponse)
-    assert response.status_code == 400
+    assert isinstance(response, APIResponse)
+    assert response.success is False
+    assert response.data["safe_input"] is None
+    assert response.error == "PII detected"
 
-    body = response.body.decode()
-    assert "validation_error" in body
-    assert "reask" in body
-    assert "PII detected" in body
 
 @pytest.mark.asyncio
 async def test_validate_with_guard_validation_error_no_failures():
@@ -79,11 +81,11 @@ async def test_validate_with_guard_validation_error_no_failures():
             request_log_id=mock_request_log_id,
         )
 
-    assert response.status_code == 400
+    assert isinstance(response, APIResponse)
+    assert response.success is False
+    assert response.data["safe_output"] is None
+    assert response.error == ""
 
-    body = response.body.decode()
-    assert "validation_error" in body
-    assert "fail" in body
 
 @pytest.mark.asyncio
 async def test_validate_with_guard_exception():
@@ -99,8 +101,7 @@ async def test_validate_with_guard_exception():
             request_log_id=mock_request_log_id,
         )
 
-    assert response.status_code == 500
-
-    body = response.body.decode()
-    assert "config_error" in body
-    assert "Invalid config" in body
+    assert isinstance(response, APIResponse)
+    assert response.success is False
+    assert response.data["safe_input"] is None
+    assert response.error == "Invalid config"

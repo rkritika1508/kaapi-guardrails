@@ -34,15 +34,13 @@ class LexicalSlur(Validator):
         self.severity = severity
         self.languages = languages or ["en", "hi"]
         self.slur_list = self.load_slur_list()
-        self.text = None
         super().__init__(on_fail=on_fail, search_words=self.slur_list)
 
     def _validate(self, value: str, metadata: dict = None) -> ValidationResult:
-        self.text = value
-        self.text = self.remove_emojis(self.text)
-        self.text = self.remove_nos(self.text)
-        self.text = self.clean_text(self.text)
-        words = self.text.split()
+        value = self.remove_emojis(value)
+        value = self.remove_nos(value)
+        value = self.clean_text(value)
+        words = value.split()
         detected_slurs = []
 
         for slur in self.slur_list:
@@ -53,15 +51,15 @@ class LexicalSlur(Validator):
         if len(detected_slurs) > 0:
             for word in words:
                 if word in detected_slurs:
-                    self.text = re.sub(rf'\b{re.escape(word)}\b', "[REDACTED_SLUR]", self.text, flags=re.IGNORECASE)
+                    value = re.sub(rf'\b{re.escape(word)}\b', "[REDACTED_SLUR]", value, flags=re.IGNORECASE)
 
         if len(detected_slurs) > 0:
             return FailResult(
                 error_message=f"Mentioned toxic words: {', '.join(detected_slurs)}",
-                fix_value=self.text
+                fix_value=value
             )
 
-        return PassResult(value=self.text)
+        return PassResult(value=value)
 
     def normalize_text(self, text):
         # Fix mojibake, weird encodings, etc.

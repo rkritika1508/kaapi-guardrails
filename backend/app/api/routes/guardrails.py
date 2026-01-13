@@ -81,9 +81,9 @@ async def _validate_with_guard(
     response_field: str,  # "safe_input" or "safe_output"
     request_log_crud: RequestLogCrud,
     request_log_id: UUID
-) -> JSONResponse | APIResponse:
-    response_id = str(uuid.uuid4())
-    
+) -> APIResponse:
+    response_id = uuid.uuid4() 
+
     try:
         guard = build_guard(validators)
         result = guard.validate(data)
