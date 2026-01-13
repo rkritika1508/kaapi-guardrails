@@ -1,8 +1,7 @@
-from re import error
 import uuid
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
 from app.api.deps import AuthDep, SessionDep
@@ -30,7 +29,7 @@ async def run_input_guardrails(
         request_log.id
     )
 
-@router.post("/output")
+@router.post("/output/")
 async def run_output_guardrails(
     payload: GuardrailOutputRequest,
     session: SessionDep,
